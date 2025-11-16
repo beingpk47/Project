@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questions - SpeechBot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .questions-container {
+            max-width: 1200px;
+            margin: 100px auto 30px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .questions-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+        }
+        .questions-body {
+            padding: 40px;
+        }
+        .question-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .question-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .question-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .question-text {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+        .answer-text {
+            color: #6c757d;
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 3px solid #667eea;
+            line-height: 1.5;
+        }
+        .question-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .subscription-info {
+            background: linear-gradient(135deg, #a29bfe 0%, #74b9ff 100%);
+            border: none;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .usage-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .read-only-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .question-number {
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .question-content {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-robot me-2"></i>SpeechBot
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="dashboard.html"><i class="fas fa-home me-1"></i> Dashboard</a>
+                <a class="nav-link" href="settings.html"><i class="fas fa-cog me-1"></i> Settings</a>
+                <a class="nav-link" href="employees.html"><i class="fas fa-users me-1"></i> Employees</a>
+                <a class="nav-link active" href="questions.html"><i class="fas fa-question-circle me-1"></i> Questions</a>
+                <a class="nav-link" href="#" onclick="authService.logout()"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="questions-container">
+        <div class="questions-header">
+            <h1><i class="fas fa-question-circle me-2"></i>Your Questions</h1>
+            <p class="mb-0">Questions configured for your SpeechBot by our team</p>
+        </div>
+        
+        <div class="questions-body">
+            <!-- Read Only Notice -->
+            <div class="read-only-notice">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                    <div>
+                        <h5 class="mb-1"><i class="fas fa-lock me-2"></i>Read Only Access</h5>
+                        <p class="mb-0">Questions are managed by our admin team based on your subscription plan. 
+                        Contact support if you need modifications to your questions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Statistics -->
+            <div class="usage-stats" id="usageStats">
+                <div class="stat-card">
+                    <div class="stat-number" id="questionsUsed">0</div>
+                    <div class="stat-label">Questions Used</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="questionsRemaining">0</div>
+                    <div class="stat-label">Questions Remaining</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="modificationsUsed">0</div>
+                    <div class="stat-label">Modifications Used</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="modificationsRemaining">0</div>
+                    <div class="stat-label">Modifications Remaining</div>
+                </div>
+            </div>
+
+            <!-- Subscription Info -->
+            <div id="subscriptionInfo" class="subscription-info">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-crown fa-2x me-3"></i>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2" id="planTitle">Your Current Plan</h5>
+                        <div class="mb-2" id="planDescription">
+                            Questions are managed by our team based on your subscription.
+                        </div>
+                        <div class="mb-1">
+                            <i class="fas fa-sync-alt me-2"></i>
+                            <strong>Modification Limits:</strong>
+                            <span id="modificationInfo"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!-- Question Request Section -->
+<div class="question-section">
+    <h4><i class="fas fa-comments me-2"></i>Request Question Changes</h4>
+    <p class="text-muted">Need to modify, delete, or add questions? Submit a request to our admin team.</p>
+    
+    <div class="form-card">
+        <form id="questionRequestForm">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="requestType" class="form-label">Request Type *</label>
+                    <select class="form-control" id="requestType" required>
+                        <option value="">Select Request Type</option>
+                        <option value="modify">Modify Question</option>
+                        <option value="delete">Delete Question</option>
+                        <option value="add">Add New Question</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="questionNumber" class="form-label">Question Number</label>
+                    <select class="form-control" id="questionNumber">
+                        <option value="">Select Question (for modify/delete)</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <small class="form-text text-muted">Required for modify and delete requests</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="requestQuestion" class="form-label">Question *</label>
+                <textarea class="form-control" id="requestQuestion" rows="3" 
+                         placeholder="Enter the question (for modify or add requests)" required></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="requestAnswer" class="form-label">Answer *</label>
+                <textarea class="form-control" id="requestAnswer" rows="4" 
+                         placeholder="Enter the answer (for modify or add requests)" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane me-2"></i>Submit Request
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Question Requests History -->
+<div class="question-section" id="requestsHistorySection" style="display: none;">
+    <h4><i class="fas fa-history me-2"></i>Your Question Requests</h4>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Question Number</th>
+                    <th>Question</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Admin Notes</th>
+                </tr>
+            </thead>
+            <tbody id="requestsHistory">
+                <!-- Will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+</div>
+            <!-- Questions List -->
+            <div class="question-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4><i class="fas fa-list me-2"></i>Your Questions</h4>
+                    <div class="text-muted">
+                        <span id="questionsCount">0</span> questions configured
+                    </div>
+                </div>
+                <div id="questionsList">
+                    <div class="empty-state">
+                        <i class="fas fa-question-circle"></i>
+                        <h4>No Questions Yet</h4>
+                        <p>Our team will configure questions for you based on your subscription.</p>
+                        <p class="text-muted">Contact support to request specific questions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../scripts/auth.js"></script>
+    <script>
+        let currentSubscription = null;
+        let questions = [];
+
+        // Load questions when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadSubscriptionStatus();
+            await loadQuestions();
+        });
+
+        // Load subscription status
+        async function loadSubscriptionStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/subscription/status`, {
+                    headers: authService.getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    currentSubscription = await response.json();
+                    updateUIForSubscription();
+                }
+            } catch (error) {
+                console.error('Error loading subscription status:', error);
+            }
+        }
+
+        // Question Request functionality
+document.addEventListener('DOMContentLoaded', function() {
+    initializeQuestionRequestForm();
+    loadQuestionRequests();
+});
+
+function initializeQuestionRequestForm() {
+    const requestType = document.getElementById('requestType');
+    const questionNumber = document.getElementById('questionNumber');
+    const requestQuestion = document.getElementById('requestQuestion');
+    const requestAnswer = document.getElementById('requestAnswer');
+    
+    // Populate question numbers
+    populateQuestionNumbers();
+    
+    // Handle request type changes
+    requestType.addEventListener('change', function() {
+        const type = this.value;
+        updateFormFields(type);
+    });
+    
+    // Handle form submission
+    document.getElementById('questionRequestForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await submitQuestionRequest();
+    });
+    
+    // Handle question number selection
+    questionNumber.addEventListener('change', function() {
+        if (this.value && requestType.value === 'modify') {
+            loadQuestionDetails(this.value);
+        }
+    });
+}
+
+function updateFormFields(requestType) {
+    const questionNumber = document.getElementById('questionNumber');
+    const requestQuestion = document.getElementById('requestQuestion');
+    const requestAnswer = document.getElementById('requestAnswer');
+    
+    // Reset all fields
+    questionNumber.required = false;
+    requestQuestion.required = false;
+    requestAnswer.required = false;
+    
+    switch(requestType) {
+        case 'modify':
+            questionNumber.required = true;
+            requestQuestion.required = true;
+            requestAnswer.required = true;
+            break;
+        case 'delete':
+            questionNumber.required = true;
+            requestQuestion.required = false;
+            requestAnswer.required = false;
+            break;
+        case 'add':
+            questionNumber.required = false;
+            requestQuestion.required = true;
+            requestAnswer.required = true;
+            break;
+    }
+}
+
+async function populateQuestionNumbers() {
+    try {
+        const questions = await loadQuestionsForRequest();
+        const questionNumberSelect = document.getElementById('questionNumber');
+        
+        questionNumberSelect.innerHTML = '<option value="">Select Question (for modify/delete)</option>';
+        
+        questions.forEach((question, index) => {
+            const questionNumber = index + 1;
+            const option = document.createElement('option');
+            option.value = questionNumber;
+            option.textContent = `Q${questionNumber}: ${question.question.substring(0, 50)}${question.question.length > 50 ? '...' : ''}`;
+            option.setAttribute('data-question-id', question._id);
+            questionNumberSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error populating question numbers:', error);
+    }
+}
+
+async function loadQuestionsForRequest() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/questions`, {
+            headers: authService.getAuthHeaders()
+        });
+        
+        if (response.ok) {
+            return await response.json();
+        }
+        throw new Error('Failed to load questions');
+    } catch (error) {
+        console.error('Error loading questions for request:', error);
+        return [];
+    }
+}
+
+function loadQuestionDetails(questionNumber) {
+    const questions = window.currentQuestions || [];
+    const questionIndex = parseInt(questionNumber) - 1;
+    
+    if (questions[questionIndex]) {
+        const question = questions[questionIndex];
+        document.getElementById('requestQuestion').value = question.question;
+        document.getElementById('requestAnswer').value = question.answer;
+    }
+}
+
+async function submitQuestionRequest() {
+    const requestType = document.getElementById('requestType').value;
+    const questionNumber = document.getElementById('questionNumber').value;
+    const question = document.getElementById('requestQuestion').value;
+    const answer = document.getElementById('requestAnswer').value;
+    
+    if (!requestType) {
+        showNotification('Please select a request type', 'error');
+        return;
+    }
+    
+    const requestData = {
+        request_type: requestType,
+        question: question,
+        answer: answer
+    };
+    
+    if (questionNumber && (requestType === 'modify' || requestType === 'delete')) {
+        requestData.question_number = questionNumber;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/question-requests`, {
+            method: 'POST',
+            headers: authService.getAuthHeaders(),
+            body: JSON.stringify(requestData)
+        });
+        
+        if (response.ok) {
+            showNotification('Question request submitted successfully! Our team will review it soon.', 'success');
+            document.getElementById('questionRequestForm').reset();
+            await loadQuestionRequests();
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to submit request');
+        }
+    } catch (error) {
+        console.error('Error submitting question request:', error);
+        showNotification('Error submitting request: ' + error.message, 'error');
+    }
+}
+
+async function loadQuestionRequests() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/question-requests`, {
+            headers: authService.getAuthHeaders()
+        });
+        
+        if (response.ok) {
+            const requests = await response.json();
+            displayQuestionRequests(requests);
+        }
+    } catch (error) {
+        console.error('Error loading question requests:', error);
+    }
+}
+
+function displayQuestionRequests(requests) {
+    const requestsHistory = document.getElementById('requestsHistory');
+    const requestsHistorySection = document.getElementById('requestsHistorySection');
+    
+    if (requests.length === 0) {
+        requestsHistorySection.style.display = 'none';
+        return;
+    }
+    
+    requestsHistorySection.style.display = 'block';
+    
+    requestsHistory.innerHTML = requests.map(request => `
+        <tr>
+            <td>
+                <span class="badge ${getRequestTypeBadge(request.request_type)}">
+                    ${request.request_type.replace('_', ' ').toUpperCase()}
+                </span>
+            </td>
+            <td>${request.question_number ? `Q${request.question_number}` : 'N/A'}</td>
+            <td>${request.question ? request.question.substring(0, 50) + (request.question.length > 50 ? '...' : '') : 'N/A'}</td>
+            <td>
+                <span class="badge ${getRequestStatusBadge(request.status)}">
+                    ${request.status.toUpperCase()}
+                </span>
+            </td>
+            <td>${new Date(request.created_at).toLocaleDateString()}</td>
+            <td>${request.admin_notes || 'No notes yet'}</td>
+        </tr>
+    `).join('');
+}
+
+function getRequestTypeBadge(type) {
+    const badges = {
+        'modify': 'bg-warning',
+        'delete': 'bg-danger',
+        'add': 'bg-success'
+    };
+    return badges[type] || 'bg-secondary';
+}
+
+function getRequestStatusBadge(status) {
+    const badges = {
+        'pending': 'bg-warning',
+        'approved': 'bg-success',
+        'rejected': 'bg-danger'
+    };
+    return badges[status] || 'bg-secondary';
+}
+
+// Store current questions for reference
+window.currentQuestions = [];
+async function loadQuestions() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/questions`, {
+            headers: authService.getAuthHeaders()
+        });
+
+        if (response.ok) {
+            window.currentQuestions = await response.json();
+            displayQuestions(window.currentQuestions);
+        } else {
+            throw new Error('Failed to load questions');
+        }
+    } catch (error) {
+        console.error('Error loading questions:', error);
+        showNotification('Error loading questions: ' + error.message, 'error');
+    }
+}
+
+        // Update UI based on subscription status
+        function updateUIForSubscription() {
+            const subscriptionInfo = document.getElementById('subscriptionInfo');
+            const usageStats = document.getElementById('usageStats');
+            const planTitle = document.getElementById('planTitle');
+            const planDescription = document.getElementById('planDescription');
+            const modificationInfo = document.getElementById('modificationInfo');
+            
+            // Update usage stats
+            document.getElementById('questionsUsed').textContent = currentSubscription.questions_used;
+            document.getElementById('questionsRemaining').textContent = currentSubscription.questions_remaining;
+            document.getElementById('modificationsUsed').textContent = currentSubscription.modifications_used;
+            document.getElementById('modificationsRemaining').textContent = currentSubscription.modifications_remaining;
+            
+            if (currentSubscription.is_trial) {
+                planTitle.innerHTML = '<i class="fas fa-gem me-2"></i>Trial Plan';
+                planDescription.textContent = "During trial, our team will configure up to 5 questions for you.";
+                modificationInfo.textContent = "No modifications available in trial";
+            } else {
+                planTitle.innerHTML = '<i class="fas fa-crown me-2"></i>' + currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1) + ' Plan';
+                planDescription.textContent = `Our team manages your ${currentSubscription.questions_allowed} questions with ${currentSubscription.modifications_allowed} modifications.`;
+                modificationInfo.textContent = `${currentSubscription.modifications_used}/${currentSubscription.modifications_allowed} modifications used`;
+            }
+            
+            usageStats.style.display = 'grid';
+        }
+
+        // Load questions from backend
+        async function loadQuestions() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/questions`, {
+                    headers: authService.getAuthHeaders()
+                });
+
+                if (response.ok) {
+                    questions = await response.json();
+                    displayQuestions(questions);
+                } else {
+                    throw new Error('Failed to load questions');
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                showNotification('Error loading questions: ' + error.message, 'error');
+            }
+        }
+
+        // Display questions in the list with numbers
+        function displayQuestions(questions) {
+            const questionsList = document.getElementById('questionsList');
+            const questionsCount = document.getElementById('questionsCount');
+            
+            questionsCount.textContent = questions.length;
+
+            if (questions.length === 0) {
+                questionsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-question-circle"></i>
+                        <h4>No Questions Yet</h4>
+                        <p>Our team will configure questions for you based on your subscription.</p>
+                        <p class="text-muted">Contact support to request specific questions.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            questionsList.innerHTML = questions.map((question, index) => {
+                const questionNumber = index + 1;
+                return `
+                    <div class="question-item">
+                        <div class="question-header">
+                            <div class="question-number">${questionNumber}</div>
+                            <div class="question-content">
+                                <div class="question-text">
+                                    ${escapeHtml(question.question)}
+                                </div>
+                                <div class="answer-text">
+                                    <i class="fas fa-reply me-2 text-success"></i>
+                                    ${escapeHtml(question.answer)}
+                                </div>
+                                <div class="question-meta">
+                                    <small><i class="fas fa-calendar me-1"></i>Created: ${new Date(question.created_at).toLocaleDateString()}</small>
+                                    ${question.updated_at ? `<small><i class="fas fa-edit me-1"></i>Updated: ${new Date(question.updated_at).toLocaleDateString()}</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Utility functions
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function showNotification(message, type) {
+            // Remove existing notifications
+            document.querySelectorAll('.question-notification').forEach(notification => {
+                notification.remove();
+            });
+
+            const notification = document.createElement('div');
+            notification.className = `question-notification alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                z-index: 1000;
+                min-width: 300px;
+            `;
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

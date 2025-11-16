@@ -1,0 +1,119 @@
+<div id="forgotPasswordModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeForgotPassword()">&times;</span>
+        <h3>Reset Your Password</h3>
+        <form id="forgotPasswordForm">
+            <div class="form-group">
+                <label for="resetEmail">Email Address</label>
+                <input type="email" id="resetEmail" required>
+            </div>
+            <button type="submit" class="auth-btn">Send Reset OTP</button>
+        </form>
+        
+        <div id="resetOtpSection" style="display: none;">
+            <form id="resetPasswordForm">
+                <div class="form-group">
+                    <label for="resetOtp">Enter OTP</label>
+                    <input type="text" id="resetOtp" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" required>
+                </div>
+                <button type="submit" class="auth-btn">Reset Password</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showForgotPassword() {
+    document.getElementById('forgotPasswordModal').style.display = 'block';
+}
+
+function closeForgotPassword() {
+    document.getElementById('forgotPasswordModal').style.display = 'none';
+}
+
+// Forgot password form handling
+document.getElementById('forgotPasswordForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('resetEmail').value;
+    
+    try {
+        const response = await fetch('http://localhost:8000/forgot-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: email})
+        });
+        
+        if (response.ok) {
+            showNotification('OTP sent to your email', 'success');
+            document.getElementById('resetOtpSection').style.display = 'block';
+        } else {
+            const error = await response.json();
+            showNotification(error.detail || 'Failed to send OTP', 'error');
+        }
+    } catch (error) {
+        showNotification('Network error: ' + error.message, 'error');
+    }
+});
+
+// Reset password form handling
+document.getElementById('resetPasswordForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('resetEmail').value;
+    const otp = document.getElementById('resetOtp').value;
+    const newPassword = document.getElementById('newPassword').value;
+    
+    try {
+        const response = await fetch('http://localhost:8000/reset-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                email: email,
+                otp: otp,
+                new_password: newPassword
+            })
+        });
+        
+        if (response.ok) {
+            showNotification('Password reset successfully', 'success');
+            closeForgotPassword();
+        } else {
+            const error = await response.json();
+            showNotification(error.detail || 'Failed to reset password', 'error');
+        }
+    } catch (error) {
+        showNotification('Network error: ' + error.message, 'error');
+    }
+});
+</script>
+
+<style>
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 400px;
+    max-width: 90%;
+}
+
+.close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
